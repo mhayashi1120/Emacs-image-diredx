@@ -313,6 +313,7 @@
                                   (error "Thumbnail not created for %s" f))
                                 thumb))))
     ;; same as dired.el
+    ;; TODO adjust popup frame to all image.
     (with-current-buffer (get-buffer-create " *Deletions*")
       (let ((inhibit-read-only t))
         (erase-buffer)
