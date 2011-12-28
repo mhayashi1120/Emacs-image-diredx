@@ -1,10 +1,10 @@
-;;; image-dired+.el --- Image-dired extensions for Emacs
+;;; image-dired+.el --- Image-dired some extensions
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.0
+;; Version: 0.5.1
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -112,6 +112,7 @@
            (dired-buf (cadr item))
            (thumb-name (image-dired-thumb-name curr-file))
            (caller-is-ad (ad-is-active 'call-process)))
+      ;; `flet' replace `call-process' definition when `call-process' is advised.
       (when caller-is-ad
         (ad-deactivate 'call-process))
       (unwind-protect
@@ -120,7 +121,7 @@
                   (apply 'start-process "image-dired" nil program args)))
             (let ((proc 
                    (if (file-exists-p thumb-name)
-                       ;;FIXME trick for async
+                       ;;FIXME async trick
                        (start-process "image-dired trick" nil shell-file-name
                                       shell-command-switch "")
                      (image-dired-create-thumb curr-file thumb-name))))
@@ -159,7 +160,9 @@
       (save-excursion
         (let ((inhibit-read-only t))
           (goto-char (point-max))
-          (image-dired-insert-thumbnail thumb file dired)
+          ;; `image-dired-insert-thumbnail' destroy current window (ex: minibuffer)
+          (save-window-excursion
+            (image-dired-insert-thumbnail thumb file dired))
           (image-diredx--prepare-line-up)))
       (cond 
        (pf
@@ -264,6 +267,7 @@
       (nreverse res))))
 
 (defun image-diredx-flagged-delete ()
+  "Execute flagged deletion with confirmation, like `dired' buffer."
   (interactive)
   (let ((flagged 
          (loop for buf in (image-diredx--associated-dired-buffers)
@@ -303,7 +307,8 @@
                        (format "%d of %d deletion%s failed"
                                (length failures) count
                                (dired-plural-s count))
-                       failures)))))))
+                       failures)))
+      (image-diredx--prepare-line-up)))))
 
 (defun image-diredx--confirm (files)
   (let ((thumbs (loop for f in files
@@ -312,12 +317,13 @@
                                   ;;TODO or insert only string?
                                   (error "Thumbnail not created for %s" f))
                                 thumb))))
-    ;; same as dired.el
     ;; TODO adjust popup frame to all image.
+    ;; TODO Show prompt buffer multiple times if exceed frame size.
+    ;; same as dired.el
     (with-current-buffer (get-buffer-create " *Deletions*")
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (setq truncate-lines t)
+        (setq truncate-lines nil)
         (loop for thumb in thumbs
               do (insert-image (create-image 
                                 thumb nil nil 
