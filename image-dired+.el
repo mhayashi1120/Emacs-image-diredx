@@ -120,7 +120,10 @@
                   (program &optional infile buffer display &rest args)
                   (apply 'start-process "image-dired" nil program args)))
             (let ((proc 
-                   (if (file-exists-p thumb-name)
+                   (if (or 
+                        (not (file-exists-p curr-file))
+                        (and (file-exists-p thumb-name)
+                             (file-newer-than-file-p thumb-name curr-file)))
                        ;;FIXME async trick
                        (start-process "image-dired trick" nil shell-file-name
                                       shell-command-switch "")
