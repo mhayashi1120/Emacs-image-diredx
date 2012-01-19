@@ -105,6 +105,15 @@
    (t
     (image-dired-line-up-dynamic))))
 
+(defun image-diredx--redisplay-window-function (frame)
+  (when (eq major-mode 'image-dired-thumbnail-mode)
+    (image-diredx--redisplay-list-with-point)))
+
+(defun image-diredx--redisplay-list-with-point ()
+  (let ((file (image-dired-original-file-name)))
+    (image-diredx--prepare-line-up)
+    (image-diredx--goto-file file)))
+
 (defun image-diredx--invoke-process (items thumb-buf)
   (when items
     (let* ((item (car items))
@@ -311,14 +320,14 @@
                                (length failures) count
                                (dired-plural-s count))
                        failures)))
-      (image-diredx--prepare-line-up)))))
+      (image-diredx--redisplay-list-with-point)))))
 
 (defun image-diredx--confirm (files)
   (let ((thumbs (loop for f in files
                       collect (let ((thumb (image-dired-thumb-name f)))
                                 (unless (file-exists-p thumb)
                                   ;;TODO or insert only string?
-                                  (error "Thumbnail not created for %s" f))
+                                  (error "Thumbnail was not created for %s" f))
                                 thumb))))
     ;; TODO adjust popup frame to all image.
     ;; TODO Show prompt buffer multiple times if exceed frame size.
@@ -350,7 +359,9 @@
             (define-key image-dired-thumbnail-mode-map 
               "x" 'image-diredx-flagged-delete)
             (set (make-variable-buffer-local 'revert-buffer-function)
-                 'image-diredx--thumb-revert-buffer)))
+                 'image-diredx--thumb-revert-buffer)
+            (add-hook 'window-size-change-functions 
+                      'image-diredx--redisplay-window-function nil t)))
 
 (provide 'image-dired+)
 
