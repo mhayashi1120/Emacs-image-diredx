@@ -62,7 +62,7 @@
   "Extension for `image-dired' asynchrounous image thumbnail."
   :global t
   :group 'image+
-  (funcall (if image-diredx-async-mode 
+  (funcall (if image-diredx-async-mode
                'ad-enable-advice
              'ad-disable-advice)
            'image-dired-display-thumbs 'around 'image-diredx-display-thumbs)
@@ -72,7 +72,7 @@
   (around image-diredx-display-thumbs (&optional arg append do-not-pop) disable)
   (if arg
       (setq ad-return-value ad-do-it)
-    (setq ad-return-value 
+    (setq ad-return-value
           (image-diredx--display-thumbs append do-not-pop))))
 
 (defun image-diredx--display-thumbs (&optional append do-not-pop)
@@ -93,7 +93,7 @@
 
 ;; NOTE: duplicated from `image-dired-display-thumbs'
 (defun image-diredx--prepare-line-up ()
-  (cond 
+  (cond
    ((eq 'dynamic image-dired-line-up-method)
     (image-dired-line-up-dynamic))
    ((eq 'fixed image-dired-line-up-method)
@@ -125,11 +125,11 @@
       (when caller-is-ad
         (ad-deactivate 'call-process))
       (unwind-protect
-          (flet ((call-process 
+          (flet ((call-process
                   (program &optional infile buffer display &rest args)
                   (apply 'start-process "image-dired" nil program args)))
-            (let ((proc 
-                   (if (or 
+            (let ((proc
+                   (if (or
                         (not (file-exists-p curr-file))
                         (and (file-exists-p thumb-name)
                              (file-newer-than-file-p thumb-name curr-file)))
@@ -176,7 +176,7 @@
           (save-window-excursion
             (image-dired-insert-thumbnail thumb file dired))
           (image-diredx--prepare-line-up)))
-      (cond 
+      (cond
        (pf
         (image-diredx--goto-file pf))
        (pp
@@ -235,10 +235,10 @@
                    hist)
                (condition-case nil
                    (while (or (null hist)
-                              (progn 
+                              (progn
                                 (setq left (image-diredx--thumb-current-left))
                                 (setq diff (abs (- tleft left)))
-                                ;; Break when incresing differences, 
+                                ;; Break when incresing differences,
                                 ;; this means obviously exceed target column
                                 (<= diff (caar hist))))
                      (setq hist (cons (list diff (point)) hist))
@@ -281,7 +281,7 @@
 (defun image-diredx-flagged-delete ()
   "Execute flagged deletion with confirmation, like `dired' buffer."
   (interactive)
-  (let ((flagged 
+  (let ((flagged
          (loop for buf in (image-diredx--associated-dired-buffers)
                append (with-current-buffer buf
                         (let* ((dired-marker-char dired-del-marker)
@@ -337,8 +337,8 @@
         (erase-buffer)
         (setq truncate-lines nil)
         (loop for thumb in thumbs
-              do (insert-image (create-image 
-                                thumb nil nil 
+              do (insert-image (create-image
+                                thumb nil nil
                                 :relief image-dired-thumb-relief
                                 :margin image-dired-thumb-margin))))
       (save-window-excursion
@@ -354,13 +354,13 @@
                 (inhibit-read-only t))
            (delete-region start end)))))
 
-(add-hook 'image-dired-thumbnail-mode-hook 
-          (lambda () 
-            (define-key image-dired-thumbnail-mode-map 
+(add-hook 'image-dired-thumbnail-mode-hook
+          (lambda ()
+            (define-key image-dired-thumbnail-mode-map
               "x" 'image-diredx-flagged-delete)
             (set (make-variable-buffer-local 'revert-buffer-function)
                  'image-diredx--thumb-revert-buffer)
-            (add-hook 'window-size-change-functions 
+            (add-hook 'window-size-change-functions
                       'image-diredx--redisplay-window-function nil t)))
 
 (provide 'image-dired+)
