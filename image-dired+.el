@@ -39,6 +39,7 @@
 ;;; TODO:
 
 ;; * show original image.
+;; * confuse multi process when revert many times.
 
 ;;; Code:
 
