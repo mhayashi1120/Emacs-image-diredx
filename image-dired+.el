@@ -4,7 +4,7 @@
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.1
+;; Version: 0.5.2
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -30,22 +30,21 @@
 ;;
 ;;     (require 'image-dired+)
 
-
 ;;; Usage:
 
-;;TODO
+;; * To be disable the implementations
+;;
 ;;  M-x image-diredx-async-mode
 
 ;;; TODO:
 
-;; * show original image.
-;; * confuse multi process when revert many times.
+;; * Check on windows (file name has multibyte string)
 
 ;;; Code:
 
-;;;
-;;; image-dired extensions
-;;;
+;;
+;; image-dired extensions
+;;
 
 (eval-when-compile
   (require 'cl)
@@ -115,8 +114,12 @@
     (image-diredx--prepare-line-up)
     (image-diredx--goto-file file)))
 
+(defvar image-diredx--suppress-invoking nil)
+
 (defun image-diredx--invoke-process (items thumb-buf)
-  (when items
+  (when (and items 
+             (not (buffer-local-value 
+                   'image-diredx--suppress-invoking thumb-buf)))
     (let* ((item (car items))
            (curr-file (car item))
            (dired-buf (cadr item))
@@ -128,14 +131,14 @@
       (unwind-protect
           (flet ((call-process
                   (program &optional infile buffer display &rest args)
-                  (apply 'start-process "image-dired" nil program args)))
+                  (apply 'start-process "image-dired+" nil program args)))
             (let ((proc
                    (if (or
                         (not (file-exists-p curr-file))
                         (and (file-exists-p thumb-name)
                              (file-newer-than-file-p thumb-name curr-file)))
                        ;;FIXME async trick
-                       (start-process "image-dired trick" nil shell-file-name
+                       (start-process "image-dired+" nil shell-file-name
                                       shell-command-switch "")
                      (image-dired-create-thumb curr-file thumb-name))))
               (set-process-sentinel proc 'image-diredx--thumb-process-sentinel)
@@ -147,6 +150,14 @@
               proc))
         (when caller-is-ad
           (ad-activate 'call-process))))))
+
+(defun image-diredx--cleanup-processes ()
+  (set (make-local-variable 'image-diredx--suppress-invoking) t)
+  (unwind-protect
+      (let (proc)
+        (while (setq proc (get-process "image-dired+"))
+          (delete-process proc)))
+    (kill-local-variable 'image-diredx--suppress-invoking)))
 
 (defun image-diredx--thumb-process-sentinel (proc event)
   (when (memq (process-status proc) '(exit signal))
@@ -256,15 +267,17 @@
         (goto-char point)))
 
 (defun image-diredx--thumb-revert-buffer (&rest ignore)
-  (let* ((bufs (image-diredx--associated-dired-buffers))
-         (items (loop for b in bufs
-                      if (buffer-live-p b)
-                      append (with-current-buffer b
-                               (loop for f in (dired-get-marked-files)
-                                     collect (list f b))))))
-    (let ((inhibit-read-only t))
-      (erase-buffer))
-    (image-diredx--invoke-process items (current-buffer))))
+  (when image-diredx-async-mode
+    (image-diredx--cleanup-processes)
+    (let* ((bufs (image-diredx--associated-dired-buffers))
+           (items (loop for b in bufs
+                        if (buffer-live-p b)
+                        append (with-current-buffer b
+                                 (loop for f in (dired-get-marked-files)
+                                       collect (list f b))))))
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (image-diredx--invoke-process items (current-buffer)))))
 
 (defun image-diredx--associated-dired-buffers ()
   (save-excursion
@@ -330,12 +343,12 @@
                                   ;;TODO or insert only string?
                                   (error "Thumbnail was not created for %s" f))
                                 thumb))))
-    ;; TODO adjust popup frame to all image.
     ;; TODO Show prompt buffer multiple times if exceed frame size.
     ;; same as dired.el
     (with-current-buffer (get-buffer-create " *Deletions*")
       (let ((inhibit-read-only t))
         (erase-buffer)
+        ;; show all image as much as possible.
         (setq truncate-lines nil)
         (loop for thumb in thumbs
               do (insert-image (create-image
@@ -363,6 +376,9 @@
                  'image-diredx--thumb-revert-buffer)
             (add-hook 'window-size-change-functions
                       'image-diredx--redisplay-window-function nil t)))
+
+;; activate the asynchronous mode
+(image-diredx-async-mode 1)
 
 (provide 'image-dired+)
 
