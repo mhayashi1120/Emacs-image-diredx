@@ -1,4 +1,4 @@
-;;; image-dired+.el --- Image-dired some extensions
+;;; image-dired+.el --- Image-dired extensions
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: image-dired extensions
@@ -32,7 +32,7 @@
 
 ;;; Usage:
 
-;; * To be disable the implementations
+;; * To be disable the asynchronous feature
 ;;
 ;;  M-x image-diredx-async-mode
 
@@ -70,12 +70,16 @@
 
 (defadvice image-dired-display-thumbs
   (around image-diredx-display-thumbs (&optional arg append do-not-pop) disable)
+  ;; arg non-nil means retrieving single file.
   (if arg
       (setq ad-return-value ad-do-it)
     (setq ad-return-value
           (image-diredx--display-thumbs append do-not-pop))))
 
 (defun image-diredx--display-thumbs (&optional append do-not-pop)
+  "Like `image-dired-display-thumbs' but asynchronously display thumbnails 
+of marked files.
+"
   (let* ((buf (image-dired-create-thumbnail-buffer))
          (dir (dired-current-directory))
          (dired-buf (current-buffer))
@@ -117,8 +121,8 @@
 (defvar image-diredx--suppress-invoking nil)
 
 (defun image-diredx--invoke-process (items thumb-buf)
-  (when (and items 
-             (not (buffer-local-value 
+  (when (and items
+             (not (buffer-local-value
                    'image-diredx--suppress-invoking thumb-buf)))
     (let* ((item (car items))
            (curr-file (car item))
@@ -178,7 +182,8 @@
 
 (defun image-diredx--thumb-insert (buf thumb file dired)
   (with-current-buffer buf
-    ;; save current point or filename
+    ;; save current point and filename.
+    ;; restore point or filename.
     (let ((pf (image-dired-original-file-name))
           (pp (point)))
       (save-excursion
@@ -293,7 +298,7 @@
       (nreverse res))))
 
 (defun image-diredx-flagged-delete ()
-  "Execute flagged deletion with confirmation, like `dired' buffer."
+  "Execute flagged deletion with imaging confirmation, like `dired' buffer."
   (interactive)
   (let ((flagged
          (loop for buf in (image-diredx--associated-dired-buffers)
@@ -338,11 +343,12 @@
 
 (defun image-diredx--confirm (files)
   (let ((thumbs (loop for f in files
-                      collect (let ((thumb (image-dired-thumb-name f)))
-                                (unless (file-exists-p thumb)
-                                  ;;TODO or insert only string?
-                                  (error "Thumbnail was not created for %s" f))
-                                thumb))))
+                      collect
+                      (let ((thumb (image-dired-thumb-name f)))
+                        (unless (file-exists-p thumb)
+                          ;;TODO or insert only string?
+                          (error "Thumbnail has not been created for %s" f))
+                        thumb))))
     ;; TODO Show prompt buffer multiple times if exceed frame size.
     ;; same as dired.el
     (with-current-buffer (get-buffer-create " *Deletions*")
@@ -368,14 +374,16 @@
                 (inhibit-read-only t))
            (delete-region start end)))))
 
-(add-hook 'image-dired-thumbnail-mode-hook
-          (lambda ()
-            (define-key image-dired-thumbnail-mode-map
-              "x" 'image-diredx-flagged-delete)
-            (set (make-variable-buffer-local 'revert-buffer-function)
-                 'image-diredx--thumb-revert-buffer)
-            (add-hook 'window-size-change-functions
-                      'image-diredx--redisplay-window-function nil t)))
+(defun image-diredx--setup ()
+  (define-key image-dired-thumbnail-mode-map
+    "x" 'image-diredx-flagged-delete)
+  (set (make-variable-buffer-local 'revert-buffer-function)
+       'image-diredx--thumb-revert-buffer)
+  (add-hook 'window-size-change-functions
+            'image-diredx--redisplay-window-function nil t))
+
+;; setup key or any feature.
+(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup)
 
 ;; activate the asynchronous mode
 (image-diredx-async-mode 1)
