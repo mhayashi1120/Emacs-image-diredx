@@ -4,7 +4,7 @@
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.2
+;; Version: 0.5.3
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
