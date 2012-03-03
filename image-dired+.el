@@ -65,11 +65,13 @@
   (funcall (if image-diredx-async-mode
                'ad-enable-advice
              'ad-disable-advice)
-           'image-dired-display-thumbs 'around 'image-diredx-display-thumbs)
+           'image-dired-display-thumbs 'around
+           'image-diredx-display-thumbs)
   (ad-activate 'image-dired-display-thumbs))
 
 (defadvice image-dired-display-thumbs
-  (around image-diredx-display-thumbs (&optional arg append do-not-pop) disable)
+  (around image-diredx-display-thumbs
+          (&optional arg append do-not-pop) disable)
   ;; arg non-nil means retrieving single file.
   (if arg
       (setq ad-return-value ad-do-it)
@@ -129,7 +131,8 @@ of marked files.
            (dired-buf (cadr item))
            (thumb-name (image-dired-thumb-name curr-file))
            (caller-is-ad (ad-is-active 'call-process)))
-      ;; `flet' replace `call-process' definition when `call-process' is advised.
+      ;; `flet' replace `call-process' definition
+      ;; when `call-process' is advised.
       (when caller-is-ad
         (ad-deactivate 'call-process))
       (unwind-protect
@@ -176,7 +179,8 @@ of marked files.
                 (if (and (not (file-exists-p thumb-name))
                          (not (= 0 (process-exit-status proc))))
                     (message "Thumb could not be created for file %s" curr-file)
-                  (image-diredx--thumb-insert thumb-buf thumb-name curr-file dired-buf))
+                  (image-diredx--thumb-insert
+                   thumb-buf thumb-name curr-file dired-buf))
               (error (message "%s" err)))
           (image-diredx--invoke-process items thumb-buf))))))
 
@@ -333,7 +337,8 @@ of marked files.
                   (dired-log "%s\n" err)
                   (setq failures (cons f failures))))
             finally (if (not failures)
-                        (message "%d deletion%s done" count (dired-plural-s count))
+                        (message "%d deletion%s done" 
+                                 count (dired-plural-s count))
                       (dired-log-summary
                        (format "%d of %d deletion%s failed"
                                (length failures) count
@@ -377,7 +382,7 @@ of marked files.
 (defun image-diredx--setup ()
   (define-key image-dired-thumbnail-mode-map
     "x" 'image-diredx-flagged-delete)
-  (set (make-variable-buffer-local 'revert-buffer-function)
+  (set (make-local-variable 'revert-buffer-function)
        'image-diredx--thumb-revert-buffer)
   (add-hook 'window-size-change-functions
             'image-diredx--redisplay-window-function nil t))
