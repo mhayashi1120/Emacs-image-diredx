@@ -79,7 +79,7 @@
           (image-diredx--display-thumbs append do-not-pop))))
 
 (defun image-diredx--display-thumbs (&optional append do-not-pop)
-  "Like `image-dired-display-thumbs' but asynchronously display thumbnails 
+  "Like `image-dired-display-thumbs' but asynchronously display thumbnails
 of marked files.
 "
   (let* ((buf (image-dired-create-thumbnail-buffer))
@@ -337,7 +337,7 @@ of marked files.
                   (dired-log "%s\n" err)
                   (setq failures (cons f failures))))
             finally (if (not failures)
-                        (message "%d deletion%s done" 
+                        (message "%d deletion%s done"
                                  count (dired-plural-s count))
                       (dired-log-summary
                        (format "%d of %d deletion%s failed"
