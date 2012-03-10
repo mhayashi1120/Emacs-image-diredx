@@ -4,7 +4,7 @@
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.3
+;; Version: 0.5.4
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -58,6 +58,7 @@
     (image-dired-display-thumbs image-diredx-display-thumbs)
     ))
 
+;;;###autoload
 (define-minor-mode image-diredx-async-mode
   "Extension for `image-dired' asynchrounous image thumbnail."
   :global t
@@ -379,7 +380,9 @@ of marked files.
                 (inhibit-read-only t))
            (delete-region start end)))))
 
+;;;###autoload
 (defun image-diredx--setup ()
+  "Setup image-dired extensions."
   (define-key image-dired-thumbnail-mode-map
     "x" 'image-diredx-flagged-delete)
   (set (make-local-variable 'revert-buffer-function)
@@ -387,10 +390,20 @@ of marked files.
   (add-hook 'window-size-change-functions
             'image-diredx--redisplay-window-function nil t))
 
+;;;
+;;; activate/deactivate marmalade install or github install.
+;;;
+
+;; For `unload-feature'
+(defun image-dired+-unload-function ()
+  (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup))
+
 ;; setup key or any feature.
+;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup)
 (add-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup)
 
 ;; activate the asynchronous mode
+;;;###autoload(image-diredx-async-mode 1)
 (image-diredx-async-mode 1)
 
 (provide 'image-dired+)
