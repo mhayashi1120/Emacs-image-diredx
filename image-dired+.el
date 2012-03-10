@@ -396,6 +396,7 @@ of marked files.
 
 ;; For `unload-feature'
 (defun image-dired+-unload-function ()
+  (image-diredx-async-mode -1)
   (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup))
 
 ;; setup key or any feature.
