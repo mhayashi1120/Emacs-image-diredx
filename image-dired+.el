@@ -4,7 +4,7 @@
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.4
+;; Version: 0.5.5
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,10 @@
   (require 'cl)
   (require 'easy-mmode))
 
+(defgroup image-dired+ ()
+  "Image-dired extensions."
+  :group 'image-dired)
+
 (require 'advice)
 (require 'image-dired)
 
@@ -62,7 +66,7 @@
 (define-minor-mode image-diredx-async-mode
   "Extension for `image-dired' asynchrounous image thumbnail."
   :global t
-  :group 'image+
+  :group 'image-dired+
   (funcall (if image-diredx-async-mode
                'ad-enable-advice
              'ad-disable-advice)
@@ -78,6 +82,22 @@
       (setq ad-return-value ad-do-it)
     (setq ad-return-value
           (image-diredx--display-thumbs append do-not-pop))))
+
+;;;###autoload
+(define-minor-mode image-diredx-adjust-mode
+  "Extension for `image-dired' show image as long as adjusting to frame."
+  :global t
+  :group 'image-dired+
+  (funcall (if image-diredx-adjust-mode
+               'ad-enable-advice
+             'ad-disable-advice)
+           'image-dired-display-thumbnail-original-image 'before
+           'image-diredx-adjusted-window)
+  (ad-activate 'image-dired-display-thumbnail-original-image))
+
+(defadvice image-dired-display-thumbnail-original-image
+  (before image-diredx-adjusted-window (&optional arg) disable)
+  (image-diredx--adjust-window-height))
 
 (defun image-diredx--display-thumbs (&optional append do-not-pop)
   "Like `image-dired-display-thumbs' but asynchronously display thumbnails
@@ -379,6 +399,28 @@ of marked files.
                 (end (next-single-property-change cursor 'display))
                 (inhibit-read-only t))
            (delete-region start end)))))
+
+(defun image-diredx--adjust-window-height ()
+  (let ((thumb-h (/ image-dired-thumb-height (frame-char-height))))
+    ;; prepare full-sized image window
+    (image-dired-create-display-image-buffer)
+    (display-buffer image-dired-display-image-buffer)
+    ;; adjust thumbnail window
+    (set-window-text-height (selected-window) thumb-h)))
+
+;;;###autoload
+(defun imagex-dired-show-image-thumbnails (buffer files &optional append)
+  "Utility to insert thumbnail of FILES to BUFFER.
+That thumbnails are not associated to any dired buffer although."
+  (let ((items (mapcar
+                ;; 'cadr must be a dired buffer that contains `x'
+                (lambda (x) (list x nil))
+                files)))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (unless append
+          (erase-buffer)))
+      (image-diredx--invoke-process items buffer))))
 
 ;;;###autoload
 (defun image-diredx--setup ()
