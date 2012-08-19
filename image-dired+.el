@@ -4,7 +4,7 @@
 ;; Keywords: image-dired extensions
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.5
+;; Version: 0.5.7
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,9 +32,13 @@
 
 ;;; Usage:
 
-;; * To be disable the asynchronous feature
+;; * Toggle the asynchronous image-dired feature
 ;;
 ;;  M-x image-diredx-async-mode
+
+;; * Toggle the adjusting image in image-dired feature
+;;
+;;  M-x image-diredx-adjust-mode
 
 ;;; TODO:
 
@@ -97,7 +101,7 @@
 
 (defadvice image-dired-display-thumbnail-original-image
   (before image-diredx-adjusted-window (&optional arg) disable)
-  (image-diredx--adjust-window-height))
+  (image-diredx--adjust-window-size))
 
 (defun image-diredx--display-thumbs (&optional append do-not-pop)
   "Like `image-dired-display-thumbs' but asynchronously display thumbnails
@@ -400,13 +404,15 @@ of marked files.
                 (inhibit-read-only t))
            (delete-region start end)))))
 
-(defun image-diredx--adjust-window-height ()
-  (let ((thumb-h (/ image-dired-thumb-height (frame-char-height))))
-    ;; prepare full-sized image window
-    (image-dired-create-display-image-buffer)
-    (display-buffer image-dired-display-image-buffer)
-    ;; adjust thumbnail window
-    (set-window-text-height (selected-window) thumb-h)))
+(defun image-diredx--adjust-window-size ()
+  ;; prepare full-sized image window
+  (image-dired-create-display-image-buffer)
+  (unless (get-buffer-window image-dired-display-image-buffer)
+    (let* ((thumb-h (+ (/ image-dired-thumb-height (frame-char-height)) 2))
+           (t-win (split-window nil (- (window-text-height) thumb-h)))
+           (i-win (selected-window)))
+      (set-window-buffer i-win image-dired-display-image-buffer)
+      (select-window t-win))))
 
 ;;;###autoload
 (defun imagex-dired-show-image-thumbnails (buffer files &optional append)
@@ -439,6 +445,7 @@ That thumbnails are not associated to any dired buffer although."
 ;; For `unload-feature'
 (defun image-dired+-unload-function ()
   (image-diredx-async-mode -1)
+  (image-diredx-adjust-mode -1)
   (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup))
 
 ;; setup key or any feature.
@@ -448,6 +455,9 @@ That thumbnails are not associated to any dired buffer although."
 ;; activate the asynchronous mode
 ;;;###autoload(image-diredx-async-mode 1)
 (image-diredx-async-mode 1)
+
+;;;###autoload(image-diredx-adjust-mode 1)
+(image-diredx-adjust-mode 1)
 
 (provide 'image-dired+)
 
