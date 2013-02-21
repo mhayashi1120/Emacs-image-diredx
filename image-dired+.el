@@ -1,7 +1,7 @@
 ;;; image-dired+.el --- Image-dired extensions
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
-;; Keywords: image-dired extensions
+;; Keywords: extensions, multimedia
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 22 or later
 ;; Version: 0.5.7
@@ -30,7 +30,7 @@
 ;;
 ;;     (require 'image-dired+)
 
-;;; Usage:
+;;; Commentary:
 
 ;; * Toggle the asynchronous image-dired feature
 ;;
@@ -56,6 +56,7 @@
 
 (defgroup image-dired+ ()
   "Image-dired extensions."
+  :prefix "image-diredx-"
   :group 'image-dired)
 
 (require 'advice)
