@@ -457,9 +457,6 @@ That thumbnails are not associated to any dired buffer although."
 ;;;###autoload(image-diredx-async-mode 1)
 (image-diredx-async-mode 1)
 
-;;;###autoload(image-diredx-adjust-mode 1)
-(image-diredx-adjust-mode 1)
-
 (provide 'image-dired+)
 
 ;;; image-dired+.el ends here
