@@ -454,7 +454,7 @@ That thumbnails are not associated to any dired buffer although."
       (image-diredx--invoke-process items buffer))))
 
 ;;;###autoload
-(defun image-diredx--setup ()
+(defun image-diredx-setup ()
   "Setup image-dired extensions."
   (define-key image-dired-thumbnail-mode-map
     "x" 'image-diredx-flagged-delete)
@@ -462,6 +462,9 @@ That thumbnails are not associated to any dired buffer although."
        'image-diredx--thumb-revert-buffer)
   (add-hook 'window-size-change-functions
             'image-diredx--redisplay-window-function nil t))
+
+;; for compatibility
+(defalias 'image-diredx--setup 'image-diredx-setup)
 
 ;;;
 ;;; activate/deactivate marmalade install or github install.
@@ -471,11 +474,11 @@ That thumbnails are not associated to any dired buffer although."
 (defun image-dired+-unload-function ()
   (image-diredx-async-mode -1)
   (image-diredx-adjust-mode -1)
-  (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup))
+  (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup))
 
 ;; setup key or any feature.
-;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup)
-(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx--setup)
+;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
 
 ;; activate the asynchronous mode
 ;;;###autoload(image-diredx-async-mode 1)
