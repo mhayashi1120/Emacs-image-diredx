@@ -464,7 +464,7 @@ That thumbnails are not associated to any dired buffer although."
             'image-diredx--redisplay-window-function nil t))
 
 ;; for compatibility
-(defalias 'image-diredx-setup 'image-diredx--setup)
+(defalias 'image-diredx--setup 'image-diredx-setup)
 
 ;;;
 ;;; activate/deactivate marmalade install or github install.
