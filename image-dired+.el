@@ -3,8 +3,8 @@
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: extensions, multimedia
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
-;; Emacs: GNU Emacs 22 or later
-;; Version: 0.5.7
+;; Emacs: GNU Emacs 23 or later
+;; Version: 0.6.0
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -61,11 +61,6 @@
 
 (require 'advice)
 (require 'image-dired)
-
-(defvar image-diredx-async-advices
-  '(
-    (image-dired-display-thumbs image-diredx-display-thumbs)
-    ))
 
 ;;;###autoload
 (define-minor-mode image-diredx-async-mode
@@ -155,34 +150,43 @@ of marked files.
     (let* ((item (car items))
            (curr-file (car item))
            (dired-buf (cadr item))
-           (thumb-name (image-dired-thumb-name curr-file))
-           (caller-is-ad (ad-is-active 'call-process)))
-      ;; `flet' replace `call-process' definition
-      ;; when `call-process' is advised.
-      (when caller-is-ad
-        (ad-deactivate 'call-process))
-      (unwind-protect
-          (flet ((call-process
-                  (program &optional infile buffer display &rest args)
-                  (apply 'start-process "image-dired+" nil program args)))
-            (let ((proc
-                   (if (or
-                        (not (file-exists-p curr-file))
-                        (and (file-exists-p thumb-name)
-                             (file-newer-than-file-p thumb-name curr-file)))
-                       ;;FIXME async trick
-                       (start-process "image-dired+" nil shell-file-name
-                                      shell-command-switch "")
-                     (image-dired-create-thumb curr-file thumb-name))))
-              (set-process-sentinel proc 'image-diredx--thumb-process-sentinel)
-              (process-put proc 'thumb-name thumb-name)
-              (process-put proc 'curr-file curr-file)
-              (process-put proc 'dired-buf dired-buf)
-              (process-put proc 'thumb-buf thumb-buf)
-              (process-put proc 'items (cdr items))
-              proc))
-        (when caller-is-ad
-          (ad-activate 'call-process))))))
+           (thumb-name (image-dired-thumb-name curr-file)))
+      (let ((proc
+             (if (or
+                  (not (file-exists-p curr-file))
+                  (and (file-exists-p thumb-name)
+                       (file-newer-than-file-p thumb-name curr-file)))
+                 ;; !! async trick !!
+                 ;; using cached thumbnail.
+                 (start-process "image-dired+" nil shell-file-name
+                                shell-command-switch "")
+               (let ((entity (symbol-function 'call-process))
+                     (caller-is-ad (ad-is-active 'call-process)))
+                 ;; `fset' replace `call-process' definition
+                 ;; when `call-process' is advised.
+                 (when caller-is-ad
+                   (ad-deactivate 'call-process))
+                 (unwind-protect
+                     (progn
+                       ;; temporarily replace `call-process' entity.
+                       ;; Very dangerous but old `flet' implement like this.
+                       (fset 'call-process
+                             (lambda (program &optional infile buffer display &rest args)
+                               (apply 'start-process "image-dired+" nil program args)))
+                       (unwind-protect
+                           ;; this function call `call-process' that is replaced
+                           ;; by `fset'
+                           (image-dired-create-thumb curr-file thumb-name)
+                         (fset 'call-process entity)))
+                   (when caller-is-ad
+                     (ad-activate 'call-process)))))))
+        (set-process-sentinel proc 'image-diredx--thumb-process-sentinel)
+        (process-put proc 'thumb-name thumb-name)
+        (process-put proc 'curr-file curr-file)
+        (process-put proc 'dired-buf dired-buf)
+        (process-put proc 'thumb-buf thumb-buf)
+        (process-put proc 'items (cdr items))
+        proc))))
 
 (defun image-diredx--cleanup-processes ()
   (set (make-local-variable 'image-diredx--suppress-invoking) t)
@@ -380,8 +384,9 @@ of marked files.
                           ;;TODO or insert only string?
                           (error "Thumbnail has not been created for %s" f))
                         thumb))))
-    ;; TODO Show prompt buffer multiple times if exceed frame size.
-    ;; same as dired.el
+    ;; FIXME:
+    ;; Show prompt buffer multiple times if exceed frame size.
+    ;; This behavior same as dired.
     (with-current-buffer (get-buffer-create " *Deletions*")
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -393,8 +398,27 @@ of marked files.
                                 :relief image-dired-thumb-relief
                                 :margin image-dired-thumb-margin))))
       (save-window-excursion
-        (dired-pop-to-buffer (current-buffer))
+        (image-diredx--pop-buffer (current-buffer))
         (funcall dired-deletion-confirmer "Delete image? ")))))
+
+;; Copy from dired.el which obsoleted `dired-pop-to-buffer'
+(defun image-diredx--pop-buffer (buf)
+  (let ((split-window-preferred-function
+	 (lambda (window)
+	   (or (and (fboundp 'split-window-below)
+                    (let ((split-height-threshold 0))
+		      (window-splittable-p (selected-window)))
+		    ;; Try to split the selected window vertically if
+		    ;; that's possible.
+		    (split-window-below))
+	       ;; Otherwise, try to split WINDOW sensibly.
+	       (split-window-sensibly window))))
+	pop-up-frames)
+    (pop-to-buffer (get-buffer-create buf)))
+  (set-window-start nil (point-min))
+  ;; Try to not delete window when we want to display less than
+  ;; `window-min-height' lines.
+  (fit-window-to-buffer (get-buffer-window buf) nil 1))
 
 (defun image-diredx--delete-entry (file)
   (save-excursion
