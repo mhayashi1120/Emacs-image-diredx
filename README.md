@@ -1,5 +1,8 @@
-Install
-=======
+# image-dired+.el
+
+Image-dired extensions
+
+## Install
 
 Please install the ImageMagick before installing this elisp.
 
@@ -8,14 +11,13 @@ desired. And put the following expression into your ~/.emacs.
 
     (require 'image-dired+)
 
-Usage
-=======
+## Usage
 
-## Toggle the asynchronous image-dired feature
+Toggle the asynchronous image-dired feature
 
     M-x image-diredx-async-mode
 
-## Toggle the adjusting image in image-dired feature
+Toggle the adjusting image in image-dired feature
 
     M-x image-diredx-adjust-mode
 
