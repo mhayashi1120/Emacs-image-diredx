@@ -4,7 +4,7 @@
 ;; Keywords: extensions, multimedia
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.6.0
+;; Version: 0.6.1
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -162,7 +162,7 @@ of marked files.
                                 shell-command-switch "")
                (let ((entity (symbol-function 'call-process))
                      (caller-is-ad (ad-is-active 'call-process)))
-                 ;; `fset' replace `call-process' definition
+                 ;; `fset' may replace `call-process' definition permanently
                  ;; when `call-process' is advised.
                  (when caller-is-ad
                    (ad-deactivate 'call-process))
@@ -477,11 +477,11 @@ That thumbnails are not associated to any dired buffer although."
   (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup))
 
 ;; setup key or any feature.
-;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+;;;###autoload
 (add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
 
 ;; activate the asynchronous mode
-;;;###autoload(image-diredx-async-mode 1)
+;;;###autoload
 (image-diredx-async-mode 1)
 
 (provide 'image-dired+)

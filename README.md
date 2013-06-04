@@ -2,7 +2,7 @@
 
 Image-dired extensions
 
-## Install
+## Install:
 
 Please install the ImageMagick before installing this elisp.
 
@@ -11,7 +11,7 @@ desired. And put the following expression into your ~/.emacs.
 
     (require 'image-dired+)
 
-## Usage
+## Usage:
 
 Toggle the asynchronous image-dired feature
 
