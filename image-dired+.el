@@ -480,14 +480,17 @@ That thumbnails are not associated to any dired buffer although."
   (image-diredx-adjust-mode -1)
   (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup))
 
-;; setup key or any feature.
-;;;###autoload
-(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+
 
-;; activate the asynchronous mode (make delay load this file)
+;; activate the feature for ELPA (make delay to load this file)
 ;;;###autoload(eval-after-load 'image-dired '(require 'image-dired+))
 
-;; activate main feature when load (or require) this file.
+;;; activate main 2 features when load (or require) this file.
+
+;; setup key or any feature.
+(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+
+;; asynchronous display of images
 (image-diredx-async-mode 1)
 
 (provide 'image-dired+)
