@@ -21,3 +21,21 @@ Toggle the adjusting image in image-dired feature
 
     M-x image-diredx-adjust-mode
 
+
+### Optional:
+
+Key bindings to replace `image-dired-next-line' and `image-dired-previous-line'.
+
+    (define-key image-dired-thumbnail-mode-map "\C-n" 'image-diredx-next-line)
+    (define-key image-dired-thumbnail-mode-map "\C-p" 'image-diredx-previous-line)
+
+Like a dired buffer, revert all thumbnails with image-dired+
+
+    (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
+
+### Recommend:
+
+Suppress unknown cursor movements.
+
+    (setq image-dired-track-movement nil)
+
