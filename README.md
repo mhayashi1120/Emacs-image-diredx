@@ -9,7 +9,7 @@ Please install the ImageMagick before installing this elisp.
 Put this file into load-path'ed directory, and byte compile it if
 desired. And put the following expression into your ~/.emacs.
 
-    (require 'image-dired+)
+    (eval-after-load 'image-dired '(require 'image-dired+))
 
 ## Usage:
 

@@ -4,7 +4,7 @@
 ;; Keywords: extensions, multimedia
 ;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.6.1
+;; Version: 0.6.2
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -28,7 +28,7 @@
 ;; Put this file into load-path'ed directory, and byte compile it if
 ;; desired. And put the following expression into your ~/.emacs.
 ;;
-;;     (require 'image-dired+)
+;;     (eval-after-load 'image-dired '(require 'image-dired+))
 
 ;;; Commentary:
 
@@ -233,13 +233,17 @@ of marked files.
        (pp
         (goto-char pp))))))
 
+(defun image-diredx--quiet-forward ()
+  (let (message-log-max)
+    (image-dired-forward-image)))
+
 (defun image-diredx--goto-file (file)
   (let ((point (save-excursion
                  (goto-char (point-min))
                  (condition-case nil
                      (progn
                        (while (not (equal file (image-dired-original-file-name)))
-                         (image-dired-forward-image))
+                         (image-diredx--quiet-forward))
                        (point))
                    (error nil)))))
     (when point
@@ -271,7 +275,7 @@ of marked files.
                        ;; calculate both side margin
                        (* (plist-get (cdr img) :margin) 2)
                        (car size) )))
-        (image-dired-forward-image))
+        (image-diredx--quiet-forward))
       acc)))
 
 (defun image-diredx--thumb-goto-column (tleft)
@@ -293,7 +297,7 @@ of marked files.
                                 ;; this means obviously exceed target column
                                 (<= diff (caar hist))))
                      (setq hist (cons (list diff (point)) hist))
-                     (image-dired-forward-image))
+                     (image-diredx--quiet-forward))
                  (error nil))
                (cond
                 ((null hist)
@@ -305,7 +309,7 @@ of marked files.
                  (cadr (cadr hist)))))))))
         (goto-char point)))
 
-(defun image-diredx--thumb-revert-buffer (&rest ignore)
+(defun image-diredx--thumb-revert-buffer (&rest _ignore)
   (when image-diredx-async-mode
     (image-diredx--cleanup-processes)
     (let* ((bufs (image-diredx--associated-dired-buffers))
@@ -327,7 +331,7 @@ of marked files.
             (let ((buf (image-dired-associated-dired-buffer)))
               (unless (or (null buf) (memq buf res))
                 (setq res (cons buf res))))
-            (image-dired-forward-image))
+            (image-diredx--quiet-forward))
         (error nil))
       (nreverse res))))
 
@@ -480,8 +484,10 @@ That thumbnails are not associated to any dired buffer although."
 ;;;###autoload
 (add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
 
-;; activate the asynchronous mode
-;;;###autoload
+;; activate the asynchronous mode (make delay load this file)
+;;;###autoload(eval-after-load 'image-dired '(require 'image-dired+))
+
+;; activate main feature when load (or require) this file.
 (image-diredx-async-mode 1)
 
 (provide 'image-dired+)
