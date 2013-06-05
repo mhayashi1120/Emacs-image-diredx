@@ -40,10 +40,6 @@
 ;;
 ;;  M-x image-diredx-adjust-mode
 
-;;; TODO:
-
-;; * Check on windows (file name has multibyte string)
-
 ;;; Code:
 
 ;;

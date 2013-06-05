@@ -24,18 +24,18 @@ Toggle the adjusting image in image-dired feature
 
 ### Optional:
 
-Key bindings to replace `image-dired-next-line' and `image-dired-previous-line'.
+Key bindings to replace `image-dired-next-line' and `image-dired-previous-line':
 
     (define-key image-dired-thumbnail-mode-map "\C-n" 'image-diredx-next-line)
     (define-key image-dired-thumbnail-mode-map "\C-p" 'image-diredx-previous-line)
 
-Like a dired buffer, revert all thumbnails with image-dired+
+Although default key binding is set, but like a dired buffer, revert all thumbnails if `image-diredx-async-mode' is on:
 
     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
 
 ### Recommend:
 
-Suppress unknown cursor movements.
+Suppress unknown cursor movements:
 
     (setq image-dired-track-movement nil)
 
