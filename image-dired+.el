@@ -2,7 +2,7 @@
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: extensions, multimedia
-;; URL: http://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
+;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
 ;; Version: 0.6.2
 
