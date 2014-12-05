@@ -4,7 +4,7 @@
 ;; Keywords: extensions, multimedia
 ;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.6.2
+;; Version: 0.6.3
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -474,7 +474,9 @@ That thumbnails are not associated to any dired buffer although."
 (defun image-dired+-unload-function ()
   (image-diredx-async-mode -1)
   (image-diredx-adjust-mode -1)
-  (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup))
+  (remove-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+  ;; explicitly return nil to continue `unload-feature'
+  nil)
 
 
 
