@@ -4,7 +4,7 @@
 ;; Keywords: extensions, multimedia
 ;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.6.3
+;; Version: 0.6.4
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,24 +21,43 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Install:
+;; ## Install:
 
 ;; Please install the ImageMagick before installing this elisp.
 
 ;; Put this file into load-path'ed directory, and byte compile it if
 ;; desired. And put the following expression into your ~/.emacs.
-;;
+
 ;;     (eval-after-load 'image-dired '(require 'image-dired+))
 
-;;; Commentary:
+;; ## Usage:
 
 ;; * Toggle the asynchronous image-dired feature
-;;
-;;  M-x image-diredx-async-mode
+
+;;     M-x image-diredx-async-mode
 
 ;; * Toggle the adjusting image in image-dired feature
-;;
-;;  M-x image-diredx-adjust-mode
+
+;;     M-x image-diredx-adjust-mode
+
+
+;; ### Optional:
+
+;; * Key bindings to replace `image-dired-next-line` and `image-dired-previous-line`
+
+;;     (define-key image-dired-thumbnail-mode-map "\C-n" 'image-diredx-next-line)
+;;     (define-key image-dired-thumbnail-mode-map "\C-p" 'image-diredx-previous-line)
+
+;; * Although default key binding is set, but like a dired buffer,
+;;   revert all thumbnails if `image-diredx-async-mode` is on:
+
+;;     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
+
+;; ### Recommend:
+
+;; * Suppress unknown cursor movements:
+
+;;     (setq image-dired-track-movement nil)
 
 ;;; Code:
 

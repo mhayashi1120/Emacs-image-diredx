@@ -2,6 +2,9 @@
 
 Image-dired extensions
 
+- Non-blocking thumbnail creating
+- Adjust image to window
+
 ## Install:
 
 Please install the ImageMagick before installing this elisp.
@@ -13,29 +16,30 @@ desired. And put the following expression into your ~/.emacs.
 
 ## Usage:
 
-Toggle the asynchronous image-dired feature
+* Toggle the asynchronous image-dired feature
 
     M-x image-diredx-async-mode
 
-Toggle the adjusting image in image-dired feature
+* Toggle the adjusting image in image-dired feature
 
     M-x image-diredx-adjust-mode
 
 
 ### Optional:
 
-Key bindings to replace `image-dired-next-line' and `image-dired-previous-line':
+* Key bindings to replace `image-dired-next-line` and `image-dired-previous-line`
 
     (define-key image-dired-thumbnail-mode-map "\C-n" 'image-diredx-next-line)
     (define-key image-dired-thumbnail-mode-map "\C-p" 'image-diredx-previous-line)
 
-Although default key binding is set, but like a dired buffer, revert all thumbnails if `image-diredx-async-mode' is on:
+* Although default key binding is set, but like a dired buffer,
+  revert all thumbnails if `image-diredx-async-mode` is on:
 
     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
 
 ### Recommend:
 
-Suppress unknown cursor movements:
+* Suppress unknown cursor movements:
 
     (setq image-dired-track-movement nil)
 
