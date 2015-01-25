@@ -59,6 +59,11 @@
 
 ;;     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
 
+
+;; * Delete confirmation prompt with thumbnails.
+
+;;     (define-key image-dired-thumbnail-mode-map "x" 'image-diredx-flagged-delete)
+
 ;; ### Recommend:
 
 ;; * Suppress unknown cursor movements:
@@ -482,12 +487,12 @@ That thumbnails are not associated to any dired buffer although."
 ;;;###autoload
 (defun image-diredx-setup ()
   "Setup image-dired extensions."
-  (define-key image-dired-thumbnail-mode-map
-    "x" 'image-diredx-flagged-delete)
   ;; original synchronous implementation is not considered
   ;; revert the thumbnails buffer.
   (set (make-local-variable 'revert-buffer-function)
        'image-diredx--thumb-revert-buffer)
+  ;; for old version image-dired (bug?)
+  ;; keep cursor at point
   (add-hook 'window-size-change-functions
             'image-diredx--redisplay-window-function nil t))
 

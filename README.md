@@ -7,10 +7,14 @@ Image-dired extensions
 
 ## Install:
 
-Please install the ImageMagick before installing this elisp.
+* Please install the ImageMagick before install this package.
 
-Put this file into load-path'ed directory, and byte compile it if
-desired. And put the following expression into your ~/.emacs.
+* This package is registered at MELPA. (http://melpa.milkbox.net/)
+  Please install from here.
+
+* If you need to install manually, put this file into load-path'ed
+  directory, and byte compile it if desired. And put the following
+  expression into your ~/.emacs.
 
     (eval-after-load 'image-dired '(require 'image-dired+))
 
@@ -24,7 +28,6 @@ desired. And put the following expression into your ~/.emacs.
 
     M-x image-diredx-adjust-mode
 
-
 ### Optional:
 
 * Key bindings to replace `image-dired-next-line` and `image-dired-previous-line`
@@ -37,9 +40,13 @@ desired. And put the following expression into your ~/.emacs.
 
     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
 
+
+* Delete confirmation prompt with thumbnails.
+
+    (define-key image-dired-thumbnail-mode-map "x" 'image-diredx-flagged-delete)
+
 ### Recommend:
 
 * Suppress unknown cursor movements:
 
     (setq image-dired-track-movement nil)
-
