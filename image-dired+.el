@@ -4,7 +4,8 @@
 ;; Keywords: extensions, multimedia
 ;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.6.4
+;; Version: 0.7.0
+;; Package-Requires: ((cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,10 +26,14 @@
 
 ;; ## Install:
 
-;; Please install the ImageMagick before installing this elisp.
+;; * Please install the ImageMagick before install this package.
 
-;; Put this file into load-path'ed directory, and byte compile it if
-;; desired. And put the following expression into your ~/.emacs.
+;; * This package is registered at MELPA. (http://melpa.milkbox.net/)
+;;   Please install from here.
+;;
+;; * If you need to install manually, put this file into load-path'ed
+;;   directory, and byte compile it if desired. And put the following
+;;   expression into your ~/.emacs.
 
 ;;     (eval-after-load 'image-dired '(require 'image-dired+))
 
@@ -41,7 +46,6 @@
 ;; * Toggle the adjusting image in image-dired feature
 
 ;;     M-x image-diredx-adjust-mode
-
 
 ;; ### Optional:
 
@@ -68,8 +72,9 @@
 ;;
 
 (eval-when-compile
-  (require 'cl)
   (require 'easy-mmode))
+
+(require 'cl-lib)
 
 (defgroup image-dired+ ()
   "Image-dired extensions."
@@ -123,8 +128,8 @@ of marked files.
   (let* ((buf (image-dired-create-thumbnail-buffer))
          (dir (dired-current-directory))
          (dired-buf (current-buffer))
-         (items (loop for f in (dired-get-marked-files)
-                      collect (list f dired-buf))))
+         (items (cl-loop for f in (dired-get-marked-files)
+                         collect (list f dired-buf))))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (unless append
@@ -330,11 +335,11 @@ of marked files.
   (when image-diredx-async-mode
     (image-diredx--cleanup-processes)
     (let* ((bufs (image-diredx--associated-dired-buffers))
-           (items (loop for b in bufs
-                        if (buffer-live-p b)
-                        append (with-current-buffer b
-                                 (loop for f in (dired-get-marked-files)
-                                       collect (list f b))))))
+           (items (cl-loop for b in bufs
+                           if (buffer-live-p b)
+                           append (with-current-buffer b
+                                    (cl-loop for f in (dired-get-marked-files)
+                                             collect (list f b))))))
       (let ((inhibit-read-only t))
         (erase-buffer))
       (image-diredx--invoke-process items (current-buffer)))))
@@ -356,55 +361,55 @@ of marked files.
   "Execute flagged deletion with imaging confirmation, like `dired' buffer."
   (interactive)
   (let ((flagged
-         (loop for buf in (image-diredx--associated-dired-buffers)
-               append (with-current-buffer buf
-                        (let* ((dired-marker-char dired-del-marker)
-                               (files (dired-get-marked-files nil nil nil t)))
-                          (cond
-                           ;; selected NO file point of cursor filename
-                           ((= (length files) 1)
-                            nil)
-                           ((eq (car files) t)
-                            (cdr files))
-                           (t files)))))))
+         (cl-loop for buf in (image-diredx--associated-dired-buffers)
+                  append (with-current-buffer buf
+                           (let* ((dired-marker-char dired-del-marker)
+                                  (files (dired-get-marked-files nil nil nil t)))
+                             (cond
+                              ;; selected NO file point of cursor filename
+                              ((= (length files) 1)
+                               nil)
+                              ((eq (car files) t)
+                               (cdr files))
+                              (t files)))))))
     (cond
      ((null flagged)
       (message "(No deletions requested)"))
      ((not (image-diredx--confirm flagged))
       (message "(No deletions performed)"))
      (t
-      (loop with count = 0
-            with failures = '()
-            for f in flagged
-            do (condition-case err
-                   (progn
-                     (dired-delete-file f)
-                     (incf count)
-                     (image-diredx--delete-entry f)
-                     (dired-fun-in-all-buffers
-                      (file-name-directory f) (file-name-nondirectory f)
-                      (function dired-delete-entry) f))
-                 (error
-                  (dired-log "%s\n" err)
-                  (setq failures (cons f failures))))
-            finally (if (not failures)
-                        (message "%d deletion%s done"
-                                 count (dired-plural-s count))
-                      (dired-log-summary
-                       (format "%d of %d deletion%s failed"
-                               (length failures) count
-                               (dired-plural-s count))
-                       failures)))
+      (cl-loop with count = 0
+               with failures = '()
+               for f in flagged
+               do (condition-case err
+                      (progn
+                        (dired-delete-file f)
+                        (cl-incf count)
+                        (image-diredx--delete-entry f)
+                        (dired-fun-in-all-buffers
+                         (file-name-directory f) (file-name-nondirectory f)
+                         (function dired-delete-entry) f))
+                    (error
+                     (dired-log "%s\n" err)
+                     (setq failures (cons f failures))))
+               finally (if (not failures)
+                           (message "%d deletion%s done"
+                                    count (dired-plural-s count))
+                         (dired-log-summary
+                          (format "%d of %d deletion%s failed"
+                                  (length failures) count
+                                  (dired-plural-s count))
+                          failures)))
       (image-diredx--redisplay-list-with-point)))))
 
 (defun image-diredx--confirm (files)
-  (let ((thumbs (loop for f in files
-                      collect
-                      (let ((thumb (image-dired-thumb-name f)))
-                        (unless (file-exists-p thumb)
-                          ;;TODO or insert only string?
-                          (error "Thumbnail has not been created for %s" f))
-                        thumb))))
+  (let ((thumbs (cl-loop for f in files
+                         collect
+                         (let ((thumb (image-dired-thumb-name f)))
+                           (unless (file-exists-p thumb)
+                             ;;TODO or insert only string?
+                             (error "Thumbnail has not been created for %s" f))
+                           thumb))))
     ;; FIXME:
     ;; Show prompt buffer multiple times if exceed frame size.
     ;; This behavior same as dired.
@@ -413,11 +418,11 @@ of marked files.
         (erase-buffer)
         ;; show all image as much as possible.
         (setq truncate-lines nil)
-        (loop for thumb in thumbs
-              do (insert-image (create-image
-                                thumb nil nil
-                                :relief image-dired-thumb-relief
-                                :margin image-dired-thumb-margin))))
+        (cl-loop for thumb in thumbs
+                 do (insert-image (create-image
+                                   thumb nil nil
+                                   :relief image-dired-thumb-relief
+                                   :margin image-dired-thumb-margin))))
       (save-window-excursion
         (image-diredx--pop-buffer (current-buffer))
         (funcall dired-deletion-confirmer "Delete image? ")))))
@@ -479,6 +484,8 @@ That thumbnails are not associated to any dired buffer although."
   "Setup image-dired extensions."
   (define-key image-dired-thumbnail-mode-map
     "x" 'image-diredx-flagged-delete)
+  ;; original synchronous implementation is not considered
+  ;; revert the thumbnails buffer.
   (set (make-local-variable 'revert-buffer-function)
        'image-diredx--thumb-revert-buffer)
   (add-hook 'window-size-change-functions
@@ -501,16 +508,15 @@ That thumbnails are not associated to any dired buffer although."
 
 
 
-;; activate the feature for ELPA (make delay to load this file)
-;;;###autoload(eval-after-load 'image-dired '(require 'image-dired+))
-
-;;; activate main 2 features when load (or require) this file.
+;; activate main feature when elpa is activated.
+;; To follow the `D.1 Emacs Lisp Coding Conventions`
+;; Do not activate it when loading.
 
 ;; setup key or any feature.
-(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
+;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
 
 ;; asynchronous display of images
-(image-diredx-async-mode 1)
+;;;###autoload(image-diredx-async-mode 1)
 
 (provide 'image-dired+)
 
