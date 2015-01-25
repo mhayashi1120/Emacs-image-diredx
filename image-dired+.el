@@ -43,9 +43,18 @@
 
 ;;     M-x image-diredx-async-mode
 
+;;  Or put following to your .emacs
+
+;;     (eval-after-load 'image-dired+ '(image-diredx-async-mode 1))
+
+
 ;; * Toggle the adjusting image in image-dired feature
 
 ;;     M-x image-diredx-adjust-mode
+
+;;  Or put following to your .emacs
+
+;;     (eval-after-load 'image-dired+ '(image-diredx-adjust-mode 1))
 
 ;; ### Optional:
 
@@ -58,7 +67,6 @@
 ;;   revert all thumbnails if `image-diredx-async-mode` is on:
 
 ;;     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
-
 
 ;; * Delete confirmation prompt with thumbnails.
 
@@ -514,13 +522,13 @@ That thumbnails are not associated to any dired buffer although."
 
 
 ;; activate main feature when elpa is activated.
-;; To follow the `D.1 Emacs Lisp Coding Conventions`
-;; Do not activate it when loading.
+;; Do not activate it when loading to follow the
+;; `D.1 Emacs Lisp Coding Conventions`
 
-;; setup key or any feature.
+;; setup key or any feature for buffer locally.
 ;;;###autoload(add-hook 'image-dired-thumbnail-mode-hook 'image-diredx-setup)
 
-;; asynchronous display of images
+;; asynchronous display of images. This is main feature of this package.
 ;;;###autoload(image-diredx-async-mode 1)
 
 (provide 'image-dired+)

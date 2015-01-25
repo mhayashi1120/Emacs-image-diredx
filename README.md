@@ -24,9 +24,18 @@ Image-dired extensions
 
     M-x image-diredx-async-mode
 
+ Or put following to your .emacs
+
+    (eval-after-load 'image-dired+ '(image-diredx-async-mode 1))
+
+
 * Toggle the adjusting image in image-dired feature
 
     M-x image-diredx-adjust-mode
+
+ Or put following to your .emacs
+
+    (eval-after-load 'image-dired+ '(image-diredx-adjust-mode 1))
 
 ### Optional:
 
@@ -39,7 +48,6 @@ Image-dired extensions
   revert all thumbnails if `image-diredx-async-mode` is on:
 
     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
-
 
 * Delete confirmation prompt with thumbnails.
 
