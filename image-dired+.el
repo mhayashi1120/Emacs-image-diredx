@@ -4,7 +4,7 @@
 ;; Keywords: extensions, multimedia
 ;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.7.0
+;; Version: 0.7.1
 ;; Package-Requires: ((cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or
@@ -23,6 +23,11 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
+
+;; Image-dired extensions
+
+;; - Non-blocking thumbnail creating
+;; - Adjust image to window
 
 ;; ## Install:
 
@@ -58,13 +63,13 @@
 
 ;; ### Optional:
 
-;; * Key bindings to replace `image-dired-next-line` and `image-dired-previous-line`
+;; * Key bindings to replace `image-dired-next-line' and `image-dired-previous-line'
 
 ;;     (define-key image-dired-thumbnail-mode-map "\C-n" 'image-diredx-next-line)
 ;;     (define-key image-dired-thumbnail-mode-map "\C-p" 'image-diredx-previous-line)
 
 ;; * Although default key binding is set, but like a dired buffer,
-;;   revert all thumbnails if `image-diredx-async-mode` is on:
+;;   revert all thumbnails if `image-diredx-async-mode' is on:
 
 ;;     (define-key image-dired-thumbnail-mode-map "g" 'revert-buffer)
 
@@ -97,62 +102,6 @@
 (require 'advice)
 (require 'image-dired)
 
-;;;###autoload
-(define-minor-mode image-diredx-async-mode
-  "Extension for `image-dired' asynchrounous image thumbnail."
-  :global t
-  :group 'image-dired+
-  (funcall (if image-diredx-async-mode
-               'ad-enable-advice
-             'ad-disable-advice)
-           'image-dired-display-thumbs 'around
-           'image-diredx-display-thumbs)
-  (ad-activate 'image-dired-display-thumbs))
-
-(defadvice image-dired-display-thumbs
-  (around image-diredx-display-thumbs
-          (&optional arg append do-not-pop) disable)
-  ;; arg non-nil means retrieving single file.
-  (if arg
-      (setq ad-return-value ad-do-it)
-    (setq ad-return-value
-          (image-diredx--display-thumbs append do-not-pop))))
-
-;;;###autoload
-(define-minor-mode image-diredx-adjust-mode
-  "Extension for `image-dired' show image as long as adjusting to frame."
-  :global t
-  :group 'image-dired+
-  (funcall (if image-diredx-adjust-mode
-               'ad-enable-advice
-             'ad-disable-advice)
-           'image-dired-display-thumbnail-original-image 'before
-           'image-diredx-adjusted-window)
-  (ad-activate 'image-dired-display-thumbnail-original-image))
-
-(defadvice image-dired-display-thumbnail-original-image
-  (before image-diredx-adjusted-window (&optional arg) disable)
-  (image-diredx--adjust-window-size))
-
-(defun image-diredx--display-thumbs (&optional append do-not-pop)
-  "Like `image-dired-display-thumbs' but asynchronously display thumbnails
-of marked files.
-"
-  (let* ((buf (image-dired-create-thumbnail-buffer))
-         (dir (dired-current-directory))
-         (dired-buf (current-buffer))
-         (items (cl-loop for f in (dired-get-marked-files)
-                         collect (list f dired-buf))))
-    (with-current-buffer buf
-      (let ((inhibit-read-only t))
-        (unless append
-          (erase-buffer)))
-      (cd dir)
-      (image-diredx--invoke-process items buf))
-    (if do-not-pop
-        (display-buffer image-dired-thumbnail-buffer)
-      (pop-to-buffer image-dired-thumbnail-buffer))))
-
 ;; NOTE: duplicated from `image-dired-display-thumbs'
 (defun image-diredx--prepare-line-up ()
   (cond
@@ -167,14 +116,14 @@ of marked files.
    (t
     (image-dired-line-up-dynamic))))
 
-(defun image-diredx--redisplay-window-function (frame)
-  (when (eq major-mode 'image-dired-thumbnail-mode)
-    (image-diredx--redisplay-list-with-point)))
-
 (defun image-diredx--redisplay-list-with-point ()
   (let ((file (image-dired-original-file-name)))
     (image-diredx--prepare-line-up)
     (image-diredx--goto-file file)))
+
+(defun image-diredx--redisplay-window-function (frame)
+  (when (eq major-mode 'image-dired-thumbnail-mode)
+    (image-diredx--redisplay-list-with-point)))
 
 (defvar image-diredx--suppress-invoking nil)
 
@@ -371,7 +320,7 @@ of marked files.
       (nreverse res))))
 
 (defun image-diredx-flagged-delete ()
-  "Execute flagged deletion with imaging confirmation, like `dired' buffer."
+  "Execute flagged deletion with thumbnails confirmation, like `dired' buffer."
   (interactive)
   (let ((flagged
          (cl-loop for buf in (image-diredx--associated-dired-buffers)
@@ -478,6 +427,38 @@ of marked files.
       (set-window-buffer i-win image-dired-display-image-buffer)
       (select-window t-win))))
 
+(defun image-diredx--display-thumbs (&optional append do-not-pop)
+  "Like `image-dired-display-thumbs' but asynchronously display thumbnails
+of marked files.
+"
+  (let* ((buf (image-dired-create-thumbnail-buffer))
+         (dir (dired-current-directory))
+         (dired-buf (current-buffer))
+         (items (cl-loop for f in (dired-get-marked-files)
+                         collect (list f dired-buf))))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (unless append
+          (erase-buffer)))
+      (cd dir)
+      (image-diredx--invoke-process items buf))
+    (if do-not-pop
+        (display-buffer image-dired-thumbnail-buffer)
+      (pop-to-buffer image-dired-thumbnail-buffer))))
+
+(defadvice image-dired-display-thumbs
+  (around image-diredx-display-thumbs
+          (&optional arg append do-not-pop) disable)
+  ;; arg non-nil means retrieving single file.
+  (if arg
+      (setq ad-return-value ad-do-it)
+    (setq ad-return-value
+          (image-diredx--display-thumbs append do-not-pop))))
+
+(defadvice image-dired-display-thumbnail-original-image
+  (before image-diredx-adjusted-window (&optional arg) disable)
+  (image-diredx--adjust-window-size))
+
 ;;;###autoload
 (defun imagex-dired-show-image-thumbnails (buffer files &optional append)
   "Utility to insert thumbnail of FILES to BUFFER.
@@ -506,6 +487,30 @@ That thumbnails are not associated to any dired buffer although."
 
 ;; for compatibility
 (defalias 'image-diredx--setup 'image-diredx-setup)
+
+;;;###autoload
+(define-minor-mode image-diredx-adjust-mode
+  "Extension for `image-dired' show image as long as adjusting to frame."
+  :global t
+  :group 'image-dired+
+  (funcall (if image-diredx-adjust-mode
+               'ad-enable-advice
+             'ad-disable-advice)
+           'image-dired-display-thumbnail-original-image 'before
+           'image-diredx-adjusted-window)
+  (ad-activate 'image-dired-display-thumbnail-original-image))
+
+;;;###autoload
+(define-minor-mode image-diredx-async-mode
+  "Extension for `image-dired' asynchrounous image thumbnail."
+  :global t
+  :group 'image-dired+
+  (funcall (if image-diredx-async-mode
+               'ad-enable-advice
+             'ad-disable-advice)
+           'image-dired-display-thumbs 'around
+           'image-diredx-display-thumbs)
+  (ad-activate 'image-dired-display-thumbs))
 
 ;;;
 ;;; activate/deactivate marmalade install or github install.
