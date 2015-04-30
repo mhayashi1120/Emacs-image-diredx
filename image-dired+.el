@@ -2,9 +2,9 @@
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: extensions, multimedia
-;; URL: https://github.com/mhayashi1120/Emacs-image-diredx/raw/master/image-dired+.el
+;; URL: https://github.com/mhayashi1120/Emacs-image-diredx
 ;; Emacs: GNU Emacs 23 or later
-;; Version: 0.7.1
+;; Version: 0.7.2
 ;; Package-Requires: ((cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or
@@ -101,6 +101,9 @@
 
 (require 'advice)
 (require 'image-dired)
+
+;; to suppress byte-compile warning
+(defvar image-diredx-async-mode)
 
 ;; NOTE: duplicated from `image-dired-display-thumbs'
 (defun image-diredx--prepare-line-up ()
