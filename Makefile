@@ -4,4 +4,4 @@ check: compile
 
 compile:
 	$(EMACS) --version
-	$(EMACS) -q -batch -f batch-byte-compile image-dired+.el
+	$(EMACS) -q -batch -L . -f batch-byte-compile image-dired+.el

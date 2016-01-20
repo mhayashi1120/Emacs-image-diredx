@@ -19,6 +19,7 @@ install:
         sudo apt-get -qq update &&
         sudo apt-get -qq -f install &&
         sudo apt-get -qq install emacs23-gtk emacs23-el;
+        wget "https://elpa.gnu.org/packages/cl-lib-0.3.el" -O cl-lib.el
     fi
   - if [ "$EMACS" = 'emacs24' ]; then
         sudo add-apt-repository -y ppa:cassou/emacs &&
